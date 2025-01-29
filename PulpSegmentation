@@ -1,0 +1,27 @@
+Workflow
+ Our goal is to visualize and study the internal anatomy of the dental pulp to serve endodontic therapy instead of orthodontic diagnosis. Therefore, the main emphasis becomes the morphology of each individual tooth and 
+its pulp cavity. As illustrated in Figure 2, in this paper, we propose a two- phase framework for tooth and pulp cavity segmentation. In Phase 1, using the original CBCT sequence, the panoramic view is generated and put into 
+the RPN with FPN to pinpoint each tooth, which helps us locate each single tooth and obtain the bounding box of it. In Phase 2, data in multiple views are generated for training, and then using U- Net iteratively with different 
+loss functions for segmentation. The details of each phase will be introduced below. Single tooth bounding box extraction Extracting any single tooth from an original CBCT scan is very difficult, since the varied shape and complex 
+distribution of teeth. Our proposed method is shown in Figure 2(Phase1). Using original CBCT sequence, we first get the dental arch curve by several steps: (a) calculate the maximum intensity projection (MIP), (b) 
+binarize, (c) skeletonize, (d) get result. Then, we project along the tangent of each point on the dental arch curve to generate a panoramic view of the teeth sequence. The panoramic image will be put into the pre- trained 
+RPN with FPN21 to identify the type of each tooth and to get the bounding rectangle of it. According to the number of tooth roots22 and considering the feasibility of subsequent work, the teeth are separated into two 
+types: single- rooted tooth (ST) and multirooted tooth (MT), marked as yellow and orange, respectively. Finally, the rectangles are projected into original CBCT to obtain the bounding box for each single tooth. 
+For single- rooted tooth, the boxes size are 64 × 94× l, where l is the length of the bounding rectangle. For multirooted tooth, the boxes size are set as 128 × 128 × 176.
+
+Multi-view data enhancement
+ The doctors often label the tooth and pulp in single axial view. Manually labeling is a time-consuming and labor-intensive process, thus only limited labeled data is available for training. As illustrated in Figure 2 (Phase2), 
+the single- view of a 2D slice sequence cannot reflect the actual morphological structure of the tooth. Particularly, for MT, the crown- to- root topology of traditional axial- view of 2D slices is constantly changing. Thus, it 
+is indispensable to utilize the image features of multiple views to improve the training ability of the model on small samples. According to the morphological characteristics of two types of teeth, we choose different views 
+to generate more batches. For simple single- rooted teeth, the axial view is chosen. Compared with the other two perspectives, the axial view of ROI is approximating a circle which has more uniform features whether the crown or the root.
+ For complex multirooted teeth, the coronal and sagittal views are chosen. Due to the limited number of existing annotations, the traditional axial view cannot reflect the variable target structures from the crown to 
+the root. While the other views can complement more spatial information and better reflect the structure of the teeth. In this way, one multirooted teeth bounding box can generate two sets of batches to improve learning 
+ability of the model on limited labeled samples.
+
+Refined tooth and pulp segmentation
+ The network architecture for tooth and pulp segmentation is shown in Figure 2(Phase2). The core part adopts the U-Net,17 which consists of five contracting blocks in encoding path, four expanding blocks in decoding path 
+and four jump connections with the correspondingly cropped feature map between convolutional and up- convolutional blocks. Through four expanding blocks and four jump connections, U- Net is thought to combine low- resolution deep information for object recognition 
+and high- resolution shallow information for boundary segmentation, enabling it to achieve significant performance in medical image segmentation. Through using U- Net iteratively, the network first implements tooth segmentation. Because of the inten
+sity of teeth is close to the surrounding tissues in CBCT, the tooth boundary is too ambiguous to be exactly defined especially at the root. We use a combination of binary cross- entropy and dice coefficient as the loss 
+function,23 denoted as LTooth , to make the results as accurate as possible.
+
